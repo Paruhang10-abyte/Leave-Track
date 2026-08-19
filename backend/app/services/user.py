@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 
 from app.models.user import User
-from app.schemas.user import UserCreate
-from app.core.security import hashed_password
+from app.schemas.user import UserCreate, UserUpdate
+from app.core.security import hash_password
 
 def get_user_by_email(db: Session, email: str):
     return db.query(User).filter(User.email == email).first()
@@ -26,3 +26,18 @@ def create_user(db: Session, user: UserCreate):
     db.refresh(new_user)
     
     return new_user
+
+def get_all_users(db: Session):
+    return db.query(User).all()
+
+def update_user(db: Session, user: User, user_data: UserUpdate):
+    if user_data.full_name is not None:
+        user.full_name = user_data.full_name
+        
+    if user_data.email is not None:
+        user.email = user_data.email
+        
+    db.commit()
+    db.refresh(user)
+    
+    return user
