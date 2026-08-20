@@ -10,8 +10,7 @@ from app.services import (
     get_all_users,
     update_user
 )
-
-from app.services import user as user_service
+from app.core.dependencies import get_current_user
 
 router = APIRouter(
     prefix= "/users",
@@ -37,19 +36,6 @@ def get_users(db: Session = Depends(get_db)):
     
     return get_all_users(db)
     
-    
-@router.get("/{user_id}", response_model= UserResponse)
-def get_user(
-    user_id: int, 
-    db: Session = Depends(get_db)
-):
-    
-    user = get_user_by_id(db, user_id)
-    
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    return user
 
 @router.patch("/{user_id}", response_model= UserResponse)
 def user_update(
@@ -64,3 +50,21 @@ def user_update(
         raise HTTPException(status_code= 404, detail= "User not found")
     
     return update_user(db, user, user_data)
+
+@router.get("/me", response_model=UserResponse)
+def get_current_user_info(
+    current_user = Depends(get_current_user)
+):
+    return current_user
+
+@router.get("/{user_id}", response_model=UserResponse)
+def get_user(
+    user_id: int,
+    db: Session = Depends(get_db)
+):
+    user = get_user_by_id(db, user_id)
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return user
